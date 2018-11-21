@@ -27,7 +27,8 @@ import ucar.ma2.InvalidRangeException;
  * @version     ##library.prettyVersion## (##library.version##)
  *
  * @example InspectExample
- * @example VisualizeExample
+ * @example THREDDSExample
+ * @example LIGOExample
  */
 public class PDataset {
 	
