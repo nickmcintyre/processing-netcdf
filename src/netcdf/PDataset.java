@@ -6,6 +6,8 @@ import java.util.HashMap;
 
 import processing.core.PApplet;
 import processing.data.FloatList;
+import processing.data.DoubleList;
+import processing.data.StringList;
 
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.dataset.NetcdfDataset;
@@ -99,6 +101,34 @@ public class PDataset {
 	}
 	
 	/**
+	 * Get the full names of variables included in a dataset.
+	 * 
+	 * @return {@code StringList} of names
+	 */
+	public StringList getFullNames() {
+		StringList names = new StringList();
+		for (Variable v : getVariables()) {
+			names.append(v.getFullName());
+		}
+		
+		return names;
+	}
+	
+	/**
+	 * Get the short names of variables included in a dataset.
+	 * 
+	 * @return {@code StringList} of names
+	 */
+	public StringList getShortNames() {
+		StringList names = new StringList();
+		for (Variable v : getVariables()) {
+			names.append(v.getShortName());
+		}
+		
+		return names;
+	}
+	
+	/**
 	 * Find a variable with the specified name.
 	 * 
 	 * @param fullNameEscaped
@@ -175,6 +205,22 @@ public class PDataset {
 		FloatList data = new FloatList(numSteps);
 		for (int i = 0; i < numSteps; i++) {
 			data.append(get(shortName).getFloat(i));
+		}
+		
+		return data;
+	}
+	
+	/**
+	 * Get a DoubleList representation of a variable.
+	 * 
+	 * @param shortName
+	 * @return data
+	 */
+	public DoubleList getDoubleList(String shortName) {
+		int numSteps = (int) get(shortName).getSize();
+		DoubleList data = new DoubleList(numSteps);
+		for (int i = 0; i < numSteps; i++) {
+			data.append(get(shortName).getDouble(i));
 		}
 		
 		return data;
