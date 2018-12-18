@@ -228,6 +228,26 @@ public class PDataset {
 	}
 	
 	/**
+	 * Get the shape of a variable's dimensions in an array.
+	 * 
+	 * @param shortName
+	 * @return
+	 */
+	public int[] getShape(String shortName) {
+		return variables.get(shortName).getShape();
+	}
+	
+	/**
+	 * Copy the variable to a n-dimensional array. 
+	 * 
+	 * @param shortName
+	 * @return
+	 */
+	public Object getNDJavaArray(String shortName) {
+		return variables.get(shortName).copyToNDJavaArray();
+	}
+	
+	/**
 	 * Close the dataset upon exiting the sketch.
 	 * 
 	 */
