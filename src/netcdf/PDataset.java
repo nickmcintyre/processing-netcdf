@@ -231,7 +231,7 @@ public class PDataset {
 	 * Get the shape of a variable's dimensions in an array.
 	 * 
 	 * @param shortName
-	 * @return
+	 * @return {@code int[]} containing dimensions
 	 */
 	public int[] getShape(String shortName) {
 		return variables.get(shortName).getShape();
@@ -241,7 +241,7 @@ public class PDataset {
 	 * Copy the variable to a n-dimensional array. 
 	 * 
 	 * @param shortName
-	 * @return
+	 * @return {@code ucar.ma2.Array} copy containing data
 	 */
 	public Object getNDJavaArray(String shortName) {
 		return variables.get(shortName).copyToNDJavaArray();
