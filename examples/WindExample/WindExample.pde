@@ -1,12 +1,12 @@
 /**
  * Wind Example.
- * 
+ *
  * Load WRF (weather) data from an netCDF file, then draw a vector
  * field representing the wind. Visit the UCAR and OpenWFM websites
  * https://www.mmm.ucar.edu/weather-research-and-forecasting-model
  * http://www.openwfm.org/wiki/How_to_interpret_WRF_variables
  * for tutorials and datasets.
- * 
+ *
  */
 import netcdf.PDataset;
 
@@ -18,7 +18,7 @@ float minWind, maxWind, windRange;
 
 void setup() {
   size(600, 730, P3D);
-  
+
   // Open the dataset and read wind components
   data = new PDataset(this);
   String filename = dataPath("wrfout_v2_Lambert.nc");
@@ -33,7 +33,7 @@ void setup() {
   data.readData("PH", ":,:,:,:", "ph");
   ph = (float[][][][]) data.getNDJavaArray("ph");
   data.readData("PHB", ":,:,:,:", "phb");
-  phb = (float[][][][]) data.getNDJavaArray("phb");  
+  phb = (float[][][][]) data.getNDJavaArray("phb");
   int[] shape = data.getShape("phb");
   NSTEPS = shape[0];
   NVERT = shape[1] - 1;
@@ -71,6 +71,7 @@ void draw() {
       }
     }
   }
+
   popMatrix();
   // Update the time step
   step += delta;
@@ -83,7 +84,6 @@ void draw() {
 // Note: it turns out indices are not in the same order, nor the same size
 // http://www.openwfm.org/wiki/How_to_interpret_WRF_variables#Wind
 void interpolateWind() {
-  // u
   for (int t = 0; t < u.length; t++) {
     for (int i = 0; i < u[0].length; i++) {
       for (int j = 0; j < u[0][0].length - 1; j++) {
@@ -93,7 +93,7 @@ void interpolateWind() {
       }
     }
   }
-  // v
+
   for (int t = 0; t < v.length; t++) {
     for (int i = 0; i < v[0].length; i++) {
       for (int j = 0; j < v[0][0].length; j++) {
@@ -103,7 +103,7 @@ void interpolateWind() {
       }
     }
   }
-  // w
+
   for (int t = 0; t < w.length; t++) {
     for (int i = 0; i < w[0].length - 1; i++) {
       for (int j = 0; j < w[0][0].length; j++) {
@@ -127,6 +127,7 @@ void interpolateElevation() {
       }
     }
   }
+
   ph = null;
   phb = null;
 }
@@ -144,5 +145,6 @@ void getWindRange() {
       }
     }
   }
+  
   windRange = maxWind - minWind;
 }

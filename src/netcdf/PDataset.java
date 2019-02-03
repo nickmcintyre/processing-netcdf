@@ -27,8 +27,10 @@ import ucar.ma2.InvalidRangeException;
  * @version     ##library.prettyVersion## (##library.version##)
  *
  * @example InspectExample
- * @example THREDDSExample
  * @example LIGOExample
+ * @example PressureExample
+ * @example THREDDSExample
+ * @example WindExample
  */
 public class PDataset {
 	
@@ -68,7 +70,7 @@ public class PDataset {
 	}
 	
 	/**
-	 * Close a dataset. 
+	 * Close a dataset.
 	 * 
 	 */
 	public void close() {
@@ -104,7 +106,7 @@ public class PDataset {
 	/**
 	 * Get the full names of variables included in a dataset.
 	 * 
-	 * @return {@code StringList} of names
+	 * @return {@code StringList} of full names
 	 */
 	public StringList getFullNames() {
 		StringList names = new StringList();
@@ -118,7 +120,7 @@ public class PDataset {
 	/**
 	 * Get the short names of variables included in a dataset.
 	 * 
-	 * @return {@code StringList} of names
+	 * @return {@code StringList} of short names
 	 */
 	public StringList getShortNames() {
 		StringList names = new StringList();
@@ -186,7 +188,7 @@ public class PDataset {
 	}
 	
 	/**
-	 * Get the array backing a variable. 
+	 * Get the array backing a variable.
 	 * 
 	 * @param shortName
 	 * @return {@code ucar.ma2.Array} containing data

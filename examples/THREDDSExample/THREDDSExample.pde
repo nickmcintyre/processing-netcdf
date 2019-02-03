@@ -18,15 +18,19 @@ void setup() {
   size(720, 200);
   
   data = new PDataset(this);
-  String filename = "https://thredds-jumbo.unidata.ucar.edu/thredds/dodsC/grib/HRRR/CONUS_3km/surface/TwoD";
-  data.openFile(filename);
+  String url = "https://thredds-jumbo.unidata.ucar.edu/thredds/dodsC/grib/HRRR/CONUS_3km/surface/TwoD";
+  data.openFile(url);
   data.readData("u-component_of_wind_height_above_ground", "0:1,0:1,0:1,0:1,0:1", "u");
   data.readData("v-component_of_wind_height_above_ground", "0:1,0:1,0:1,0:1,0:1", "v");
   data.readData("Temperature_surface", "0:1,0:1,0:1,0:1", "t");
   
+  float u = data.get("u").getFloat(0);
+  float v = data.get("v").getFloat(0);
+  float t = data.get("t").getFloat(0);
+  
   position = new PVector(width/2, height/2);
-  wind = new PVector(data.get("u").getFloat(0), data.get("v").getFloat(0));
-  temp = String.format("%.1f˚C", data.get("t").getFloat(0) - 272.15);
+  wind = new PVector(u, v);
+  temp = String.format("%.1f˚C", t - 272.15);
   wspd = String.format("%.1f m/s", wind.mag());
   
   data.close();
