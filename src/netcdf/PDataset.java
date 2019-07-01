@@ -35,10 +35,10 @@ import ucar.ma2.InvalidRangeException;
 public class PDataset {
 	
 	public PApplet parent;
-	public static HashMap<String, ucar.ma2.Array> variables;
+	public HashMap<String, ucar.ma2.Array> variables;
 	
-	private static String filename;
-	private static NetcdfFile ncfile;
+	private String filename;
+	private NetcdfFile ncfile;
 
 	/**
 	 * Initialize the PDataset object.
@@ -71,7 +71,6 @@ public class PDataset {
 	
 	/**
 	 * Close a dataset.
-	 * 
 	 */
 	public void close() {
 		if (null != ncfile) {
@@ -251,7 +250,6 @@ public class PDataset {
 	
 	/**
 	 * Close the dataset upon exiting the sketch.
-	 * 
 	 */
 	public void dispose() {
 		variables = null;

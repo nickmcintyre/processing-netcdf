@@ -5,9 +5,8 @@
  * change in surface pressure over time. Visit the UCAR website
  * https://www.mmm.ucar.edu/weather-research-and-forecasting-model
  * for tutorials and datasets.
- *
  */
-import netcdf.PDataset;
+import netcdf.*;
 
 PDataset data;
 float[][][] press;
@@ -55,8 +54,8 @@ void draw() {
       rect(j*5, k*5, 5, 5);
     }
   }
-  
   popMatrix();
+  
   // Update the time step
   t++;
   if (t >= NSTEPS) {

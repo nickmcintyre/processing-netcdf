@@ -6,9 +6,8 @@
  * https://www.mmm.ucar.edu/weather-research-and-forecasting-model
  * http://www.openwfm.org/wiki/How_to_interpret_WRF_variables
  * for tutorials and datasets.
- *
  */
-import netcdf.PDataset;
+import netcdf.*;
 
 PDataset data;
 float[][][][] u, v, w, ph, phb, elev;
@@ -35,18 +34,20 @@ void setup() {
   data.readData("PHB", ":,:,:,:", "phb");
   phb = (float[][][][]) data.getNDJavaArray("phb");
   int[] shape = data.getShape("phb");
+
+  data.close();
+
   NSTEPS = shape[0];
   NVERT = shape[1] - 1;
   NLAT = shape[2];
   NLON = shape[3];
-  data.close();
-
   elev = new float[NSTEPS][NVERT][NLAT][NLON];
   step = 1;
   delta = 1;
   minWind = 10;
   maxWind = 0;
   windRange = 0;
+  
   interpolateWind();
   interpolateElevation();
   getWindRange();

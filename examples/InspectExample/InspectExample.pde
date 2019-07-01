@@ -3,9 +3,8 @@
  *
  * Load weather data from the Unidata Test THREDDS Data Server, then
  * print information on units, coordinates, etc.
- *
  */
-import netcdf.PDataset;
+import netcdf.*;
 
 PDataset data;
 

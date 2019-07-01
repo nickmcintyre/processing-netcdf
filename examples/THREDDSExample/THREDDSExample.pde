@@ -5,9 +5,8 @@
  * display surface wind velocity and temperature. Visualization gratefully
  * borrowed from https://p5js.org/examples/hello-p5-weather.html
  * (CC BY-NC-SA)
- *  
  */
-import netcdf.PDataset;
+import netcdf.*;
 
 PDataset data;
 PVector position;

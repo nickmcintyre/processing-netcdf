@@ -7,78 +7,113 @@
 - Still early days. Things will break.
 
 ## Example
-The following example loads weather data from the Unidata Test THREDDS Data Server,
-then displays surface wind velocity and temperature. Visualization gratefully
-borrowed from the [p5.js weather example](https://p5js.org/examples/hello-p5-weather.html).
+The following example loads the first observation of a gravitational wave from an HDF5 file, then plots the data (strain). Visit the [Graviational Wave Open Science Center](https://www.gw-openscience.org/about/) for tutorials and datasets.
 
-![Surface weather visual](examples/THREDDSExample/data/thredds.png)
+![Plot of LIGO data](examples/LIGOExample/data/ligo.png)
 
 ```java
-import netcdf.PDataset;
+import netcdf.*;
 
 PDataset data;
-PVector position;
-PVector wind;
-String temp, wspd;
+FloatList strain;
+float start;
+float duration;
 
 void setup() {
-  size(720, 200);
+  size(1000, 350);
 
   data = new PDataset(this);
-  String url = "https://thredds-jumbo.unidata.ucar.edu/thredds/dodsC/grib/HRRR/CONUS_3km/surface/TwoD";
-  data.openFile(url);
-  data.readData("u-component_of_wind_height_above_ground", "0:1,0:1,0:1,0:1,0:1", "u");
-  data.readData("v-component_of_wind_height_above_ground", "0:1,0:1,0:1,0:1,0:1", "v");
-  data.readData("Temperature_surface", "0:1,0:1,0:1,0:1", "t");
-
-  float u = data.get("u").getFloat(0);
-  float v = data.get("v").getFloat(0);
-  float t = data.get("t").getFloat(0);
-
-  position = new PVector(width/2, height/2);
-  wind = new PVector(u, v);
-  temp = String.format("%.1f˚C", t - 272.15);
-  wspd = String.format("%.1f m/s", wind.mag());
-
+  String filename = dataPath("H-H1_GWOSC_4KHZ_R1-1126257415-4096.hdf5");
+  data.openFile(filename);
+  data.readData("strain/Strain", "0:16777215", "strain");
+  
+  strain = scaleData(data.getDoubleList("strain"));
+  
+  start = data.findVariable("strain/Strain").getAttributes().get(4).getNumericValue().floatValue();
+  float numPoints = data.findVariable("strain/Strain").getAttributes().get(0).getNumericValue().floatValue();
+  float xSpacing = data.findVariable("strain/Strain").getAttributes().get(3).getNumericValue().floatValue();
+  duration = numPoints*xSpacing;
+  
   data.close();
+
+  noLoop();
 }
 
 void draw() {
-  background(200);
+  background(255);
+  fill(0);
+  stroke(0);
+  
+  // Draw plot title
+  textSize(18);
+  textAlign(CENTER, CENTER);
+  text("Waves, waves, waves", width/2, 20);
 
+  // Draw y-axis
+  line(50, 50, 50, height - 50);
+  line(width - 50, 50, width - 50, height - 50);
+  for (int y = -100; y <= 100; y += 50) {
+    line(width - 50, height/2 + y, width - 60, height/2 + y);
+    line(50, height/2 + y, 60, height/2 + y);
+  }
+
+  // Draw y labels
+  textSize(12);
+  textAlign(CENTER, CENTER);
+  text("1", 40, height/2 - 100);
+  text("0.5", 38, height/2 - 50);
+  text("0", 40, height/2);
+  text("-0.5", 34, height/2 + 50);
+  text("-1", 36, height/2 + 100);
+
+  // Draw y title
   pushMatrix();
-  // Display temperature and windspeed
-  textSize(16);
-  text(temp, 64, height - 32);
-  text(wspd, 64, height - 16);
-
-  translate(32, height - 32);
-  // Rotate by the wind's angle
-  rotate(wind.heading() + PI/2);
-  noStroke();
-  fill(255);
-  ellipse(0, 0, 48, 48);
-
-  stroke(45, 123, 182);
-  strokeWeight(3);
-  line(0, -16, 0, 16);
-
-  noStroke();
-  fill(45, 123, 182);
-  triangle(0, -18, -6, -10, 6, -10);
+  textAlign(CENTER, BOTTOM);
+  translate(20, height/2);
+  rotate(-HALF_PI);
+  text("H1 Strain (E-19)", 0, 0);
   popMatrix();
 
-  // Move in the wind's direction
-  position.add(wind);
+  // Draw x-axis
+  line(50, 50, width - 50, 50);
+  line(50, height - 50, width - 50, height - 50);
+  for (int x = 50; x <= width - 50; x += 100) {
+    line(x, height - 50, x, height - 60);
+    line(x, 50, x, 60);
+  }
 
-  stroke(0);
-  fill(51);
-  ellipse(position.x, position.y, 16, 16);
+  // Draw x labels
+  text(String.format("+%1.8E", start), width - 110, height - 10);
+  textAlign(CENTER, CENTER);
+  for (int i = 0; i < 10; i++) {
+    int t = int(i * duration / 9);
+    text(t, 50 + i*100, height - 40);
+  }
 
-  if (position.x > width)  position.x = 0;
-  if (position.x < 0)      position.x = width;
-  if (position.y > height) position.y = 0;
-  if (position.y < 0)      position.y = height;
+  // Draw x title
+  textAlign(CENTER, BOTTOM);
+  text("GPS Time (s)", width/2, height - 10);
+
+  // Plot data points
+  pushMatrix();
+  stroke(0, 0, 255);
+  scale(1, -1);
+  translate(0, -height);
+  for (int i = 0; i < strain.size(); i++) {
+    float x = map(i * float(width)/strain.size(), 0, width, 50, width - 50);
+    float y = height/2 + strain.get(i);
+    point(x, y);
+  }
+  popMatrix();
+}
+
+// Scale the strain data to fit the window
+FloatList scaleData(DoubleList raw) {
+  FloatList scaled = new FloatList(raw.size());
+  for (int i = 0; i < raw.size(); i++) {
+    scaled.append((float) raw.get(i)*pow(10, 19));
+  }
+
+  return scaled;
 }
 ```
-<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This example is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
