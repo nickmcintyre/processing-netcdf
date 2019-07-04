@@ -15,7 +15,7 @@ The following example loads the first observation of a gravitational wave from a
 import netcdf.*;
 
 PDataset data;
-FloatList strain;
+double[] strain;
 float start;
 float duration;
 
@@ -25,14 +25,15 @@ void setup() {
   data = new PDataset(this);
   String filename = dataPath("H-H1_GWOSC_4KHZ_R1-1126257415-4096.hdf5");
   data.openFile(filename);
-  data.readData("strain/Strain", "0:16777215", "strain");
   
-  strain = scaleData(data.getDoubleList("strain"));
+  data.loadData("strain/Strain");
+  data.loadData("meta/GPSstart");
+  data.loadData("meta/Duration");
   
-  start = data.findVariable("strain/Strain").getAttributes().get(4).getNumericValue().floatValue();
-  float numPoints = data.findVariable("strain/Strain").getAttributes().get(0).getNumericValue().floatValue();
-  float xSpacing = data.findVariable("strain/Strain").getAttributes().get(3).getNumericValue().floatValue();
-  duration = numPoints*xSpacing;
+  strain = data.get1DDoubleArray("strain/Strain");
+  // Access metadata contained in a NetCDF-Java Array object
+  start = data.variables.get("meta/GPSstart").getFloat(0);
+  duration = data.variables.get("meta/Duration").getFloat(0);
   
   data.close();
 
@@ -99,21 +100,11 @@ void draw() {
   stroke(0, 0, 255);
   scale(1, -1);
   translate(0, -height);
-  for (int i = 0; i < strain.size(); i++) {
-    float x = map(i * float(width)/strain.size(), 0, width, 50, width - 50);
-    float y = height/2 + strain.get(i);
+  for (int i = 0; i < strain.length; i++) {
+    float x = map(i * (float)width/strain.length, 0, width, 50, width - 50);
+    float y = height/2 + (float)strain[i]*pow(10, 19);
     point(x, y);
   }
   popMatrix();
-}
-
-// Scale the strain data to fit the window
-FloatList scaleData(DoubleList raw) {
-  FloatList scaled = new FloatList(raw.size());
-  for (int i = 0; i < raw.size(); i++) {
-    scaled.append((float) raw.get(i)*pow(10, 19));
-  }
-
-  return scaled;
 }
 ```

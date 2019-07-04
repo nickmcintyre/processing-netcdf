@@ -8,12 +8,15 @@ import processing.core.PApplet;
 import processing.data.FloatList;
 import processing.data.DoubleList;
 import processing.data.StringList;
+import processing.data.Table;
+import processing.data.TableRow;
 
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.dataset.NetcdfDataset;
 import ucar.nc2.Dimension;
 import ucar.nc2.Variable;
 import ucar.ma2.Array;
+import ucar.ma2.Range;
 import ucar.ma2.InvalidRangeException;
 
 /**
@@ -28,9 +31,8 @@ import ucar.ma2.InvalidRangeException;
  *
  * @example InspectExample
  * @example LIGOExample
- * @example PressureExample
  * @example THREDDSExample
- * @example WindExample
+ * @example WRFExample
  */
 public class PDataset {
 	
@@ -62,10 +64,12 @@ public class PDataset {
 		filename = theFile;
 		try {
 			ncfile = NetcdfDataset.openFile(filename, null);
-		    System.out.println("Loading " + filename);
+		    System.out.println("Opening " + filename + "\n");
 		} catch (IOException ioe) {
-		    System.out.println("Trying to open " + filename);
+		    System.out.println("Failed to open " + filename);
 		    System.out.println(ioe);
+		} finally {
+			System.out.println("...done!\n");
 		}
 	}
 	
@@ -78,28 +82,51 @@ public class PDataset {
 				ncfile.close();
 				ncfile = null;
 			} catch (IOException ioe) {
-				System.out.println("Trying to close " + filename);
+				System.out.println("Failed to close " + filename);
 				System.out.println(ioe);
 			}
 		}	
 	}
 	
 	/**
-	 * Get the dimensions of a dataset.
+	 * Get a Table containing information about a variable.
 	 * 
-	 * @return {@code List<Dimension>} containing dimensions
+	 * @param fullNameEscaped
+	 * @return {@code Table} containing info
 	 */
-	public List<Dimension> getDimensions() {
-		return ncfile.getDimensions();
+	public Table getInfo(String fullNameEscaped) {
+		Table info = new Table();
+		info.addColumn("name");
+		info.addColumn("length");
+		info.addColumn("range");
+		
+		Variable variable = ncfile.findVariable(fullNameEscaped);
+		String[] names = variable.getDimensionsString().split("\\s");
+		int[] lengths = variable.getShape();
+		List<ucar.ma2.Range> ranges = variable.getRanges();
+		int rank = variable.getRank();
+		
+		for (int i = 0; i < rank; i++) {
+			TableRow newRow = info.addRow();
+			newRow.setString("name", names[i]);
+			newRow.setInt("length", lengths[i]);
+			newRow.setString("range", ranges.get(i).toString());
+		}
+		
+		return info;
 	}
 	
 	/**
-	 * Get the variables included in a dataset.
+	 * Get a variable's number of dimensions (rank).
 	 * 
-	 * @return {@code List<Variable>} containing variables
+	 * @param fullNameEscaped
+	 * @return {@code int} number of dimensions
 	 */
-	public List<Variable> getVariables() {
-		return ncfile.getVariables();
+	public int getRank(String fullNameEscaped) {
+		Variable variable = ncfile.findVariable(fullNameEscaped);
+		int rank = variable.getRank();
+		
+		return rank;
 	}
 	
 	/**
@@ -109,7 +136,7 @@ public class PDataset {
 	 */
 	public StringList getFullNames() {
 		StringList names = new StringList();
-		for (Variable v : getVariables()) {
+		for (Variable v : ncfile.getVariables()) {
 			names.append(v.getFullName());
 		}
 		
@@ -117,135 +144,218 @@ public class PDataset {
 	}
 	
 	/**
-	 * Get the short names of variables included in a dataset.
-	 * 
-	 * @return {@code StringList} of short names
-	 */
-	public StringList getShortNames() {
-		StringList names = new StringList();
-		for (Variable v : getVariables()) {
-			names.append(v.getShortName());
-		}
-		
-		return names;
-	}
-	
-	/**
-	 * Find a variable with the specified name.
-	 * 
-	 * @param fullNameEscaped
-	 * @return null if no dataset is open, {@code Variable} otherwise
-	 */
-	public Variable findVariable(String fullNameEscaped) {
-		if (null != ncfile) {
-			return ncfile.findVariable(fullNameEscaped);
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * Read data from a variable with a section specifier and store
-	 * with a shortened name.
+	 * Load data from a variable with a section specifier.
 	 * 
 	 * @param fullNameEscaped
 	 * @param sectionSpec
-	 * @param shortName
 	 */
-	public void readData(String fullNameEscaped, String sectionSpec, String shortName) {
+	public void loadData(String fullNameEscaped, String sectionSpec) {
 		if (null != ncfile) {
 			try {
 				Variable v = ncfile.findVariable(fullNameEscaped);
 				ucar.ma2.Array data = v.read(sectionSpec);
 				if (null != data) {
-					variables.put(shortName, data);
-				}
-				
+					variables.put(fullNameEscaped, data);
+					System.out.println("Loaded " + fullNameEscaped + "...\n");
+				}		
 			} catch (IOException | InvalidRangeException ex) {
+				System.out.println("Failed to load " + fullNameEscaped);
 				System.out.println(ex);
 			}
 		}
 	}
 	
 	/**
-	 * Read data from a variable with a section specifier.
-	 * 
-	 * @param fullNameEscaped
-	 * @param sectionSpec
-	 */
-	public void readData(String fullNameEscaped, String sectionSpec) {
-		readData(fullNameEscaped, sectionSpec, fullNameEscaped);
-	}
-	
-	/**
-	 * Read data from a variable.
+	 * Load all data from a variable.
 	 * 
 	 * @param fullNameEscaped
 	 */
-	public void readData(String fullNameEscaped) {
-		readData(fullNameEscaped, "", fullNameEscaped);
-	}
-	
-	/**
-	 * Get the array backing a variable.
-	 * 
-	 * @param shortName
-	 * @return {@code ucar.ma2.Array} containing data
-	 */
-	public ucar.ma2.Array get(String shortName) {
-		return variables.get(shortName);
-	}
-	
-	/**
-	 * Get a FloatList representation of a variable.
-	 * 
-	 * @param shortName
-	 * @return data
-	 */
-	public FloatList getFloatList(String shortName) {
-		int numSteps = (int) get(shortName).getSize();
-		FloatList data = new FloatList(numSteps);
-		for (int i = 0; i < numSteps; i++) {
-			data.append(get(shortName).getFloat(i));
+	public void loadData(String fullNameEscaped) {
+		int rank = ncfile.findVariable(fullNameEscaped).getRank();
+		String sectionSpec = "";
+		for (int i = 0; i < rank; i++) {
+			sectionSpec += ":,";
 		}
 		
-		return data;
-	}
-	
-	/**
-	 * Get a DoubleList representation of a variable.
-	 * 
-	 * @param shortName
-	 * @return data
-	 */
-	public DoubleList getDoubleList(String shortName) {
-		int numSteps = (int) get(shortName).getSize();
-		DoubleList data = new DoubleList(numSteps);
-		for (int i = 0; i < numSteps; i++) {
-			data.append(get(shortName).getDouble(i));
-		}
-		
-		return data;
-	}
-	
-	/**
-	 * Get the shape of a variable's dimensions in an array.
-	 * 
-	 * @param shortName
-	 * @return {@code int[]} containing dimensions
-	 */
-	public int[] getShape(String shortName) {
-		return variables.get(shortName).getShape();
+		loadData(fullNameEscaped, sectionSpec);
 	}
 	
 	/**
 	 * Copy the variable to a n-dimensional array. 
 	 * 
-	 * @param shortName
+	 * @param fullNameEscaped
 	 * @return {@code ucar.ma2.Array} copy containing data
 	 */
-	public Object getNDJavaArray(String shortName) {
-		return variables.get(shortName).copyToNDJavaArray();
+	public Object getNDJavaArray(String fullNameEscaped) {
+		return variables.get(fullNameEscaped).copyToNDJavaArray();
+	}
+	
+	/**
+	 * Copy the variable to a 1-dimensional float array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code float[]} containing data
+	 */
+	public float[] get1DFloatArray(String fullNameEscaped) {
+		float[] variable = (float[]) getNDJavaArray(fullNameEscaped);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 2-dimensional float array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code float[][]} containing data
+	 */
+	public float[][] get2DFloatArray(String fullNameEscaped) {
+		float[][] variable = (float[][]) getNDJavaArray(fullNameEscaped);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 3-dimensional float array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code float[][][]} containing data
+	 */
+	public float[][][] get3DFloatArray(String fullNameEscaped) {
+		float[][][] variable = (float[][][]) getNDJavaArray(fullNameEscaped);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 4-dimensional float array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code float[][][][]} containing data
+	 */
+	public float[][][][] get4DFloatArray(String fullNameEscaped) {
+		float[][][][] variable = (float[][][][]) getNDJavaArray(fullNameEscaped);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 5-dimensional float array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code float[][][][][][]} containing data
+	 */
+	public float[][][][][] get5DFloatArray(String fullNameEscaped) {
+		float[][][][][] variable = (float[][][][][]) getNDJavaArray(fullNameEscaped);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 6-dimensional float array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code float[][][][][][]} containing data
+	 */
+	public float[][][][][][] get6DFloatArray(String fullNameEscaped) {
+		float[][][][][][] variable = (float[][][][][][]) getNDJavaArray(fullNameEscaped);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 7-dimensional float array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code float[][][][][][][]} containing data
+	 */
+	public float[][][][][][][] get7DFloatArray(String fullNameEscaped) {
+		float[][][][][][][] variable = (float[][][][][][][]) getNDJavaArray(fullNameEscaped);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 1-dimensional double array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code double[]} containing data
+	 */
+	public double[] get1DDoubleArray(String fullNameEscaped) {
+		double[] variable = (double[]) getNDJavaArray(fullNameEscaped);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 2-dimensional double array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code double[][]} containing data
+	 */
+	public double[][] get2DDoubleArray(String fullNameEscaped) {
+		double[][] variable = (double[][]) getNDJavaArray(fullNameEscaped);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 3-dimensional double array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code double[][][]} containing data
+	 */
+	public double[][][] get3DDoubleArray(String shortName) {
+		double[][][] variable = (double[][][]) getNDJavaArray(shortName);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 4-dimensional double array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code double[][][][]} containing data
+	 */
+	public double[][][][] get4DDoubleArray(String shortName) {
+		double[][][][] variable = (double[][][][]) getNDJavaArray(shortName);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 5-dimensional double array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code double[][][][][]} containing data
+	 */
+	public double[][][][][] get5DDoubleArray(String shortName) {
+		double[][][][][] variable = (double[][][][][]) getNDJavaArray(shortName);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 6-dimensional double array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code double[][][][][][]} containing data
+	 */
+	public double[][][][][][] get6DDoubleArray(String shortName) {
+		double[][][][][][] variable = (double[][][][][][]) getNDJavaArray(shortName);
+		
+		return variable;
+	}
+	
+	/**
+	 * Copy the variable to a 7-dimensional double array.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code double[][][][][][][]} containing data
+	 */
+	public double[][][][][][][] get7DDoubleArray(String shortName) {
+		double[][][][][][][] variable = (double[][][][][][][]) getNDJavaArray(shortName);
+		
+		return variable;
 	}
 	
 	/**

@@ -1,10 +1,11 @@
-/* 
+/**
  * THREDDS Example.
  *
  * Load weather data from the Unidata Test THREDDS Data Server, then
  * display surface wind velocity and temperature. Visualization gratefully
- * borrowed from https://p5js.org/examples/hello-p5-weather.html
- * (CC BY-NC-SA)
+ * borrowed from p5.js. (CC BY-NC-SA)
+ *
+ * https://p5js.org/examples/hello-p5-weather.html
  */
 import netcdf.*;
 
@@ -19,17 +20,18 @@ void setup() {
   data = new PDataset(this);
   String url = "https://thredds-jumbo.unidata.ucar.edu/thredds/dodsC/grib/HRRR/CONUS_3km/surface/TwoD";
   data.openFile(url);
-  data.readData("u-component_of_wind_height_above_ground", "0:1,0:1,0:1,0:1,0:1", "u");
-  data.readData("v-component_of_wind_height_above_ground", "0:1,0:1,0:1,0:1,0:1", "v");
-  data.readData("Temperature_surface", "0:1,0:1,0:1,0:1", "t");
+
+  data.loadData("u-component_of_wind_height_above_ground", "0:1,0:1,0:1,0:1,0:1");
+  data.loadData("v-component_of_wind_height_above_ground", "0:1,0:1,0:1,0:1,0:1");
+  data.loadData("Temperature_surface", "0:1,0:1,0:1,0:1");
   
-  float u = data.get("u").getFloat(0);
-  float v = data.get("v").getFloat(0);
-  float t = data.get("t").getFloat(0);
+  float[][][][][] u = data.get5DFloatArray("u-component_of_wind_height_above_ground");
+  float[][][][][] v = data.get5DFloatArray("v-component_of_wind_height_above_ground");
+  float[][][][] t = data.get4DFloatArray("Temperature_surface");
   
   position = new PVector(width/2, height/2);
-  wind = new PVector(u, v);
-  temp = String.format("%.1f˚C", t - 272.15);
+  wind = new PVector(u[0][0][0][0][0], v[0][0][0][0][0]);
+  temp = String.format("%.1f˚C", t[0][0][0][0] - 272.15);
   wspd = String.format("%.1f m/s", wind.mag());
   
   data.close();
