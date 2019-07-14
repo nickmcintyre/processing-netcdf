@@ -26,9 +26,8 @@ void setup() {
   data.loadData("meta/Duration");
   
   strain = data.get1DDoubleArray("strain/Strain");
-  // Access metadata contained in a NetCDF-Java Array object
-  start = data.variables.get("meta/GPSstart").getFloat(0);
-  duration = data.variables.get("meta/Duration").getFloat(0);
+  start = data.getFloat("meta/GPSstart");
+  duration = data.getFloat("meta/Duration");
   
   data.close();
 

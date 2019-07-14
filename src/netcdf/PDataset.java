@@ -52,7 +52,7 @@ public class PDataset {
 		parent.registerMethod("dispose", this);
 		ncfile = null;
 		filename = null;
-		variables = new HashMap<String, Array>();
+		variables = new HashMap<String, ucar.ma2.Array>();
 	}
 	
 	/**
@@ -178,6 +178,48 @@ public class PDataset {
 		}
 		
 		loadData(fullNameEscaped, sectionSpec);
+	}
+	
+	/**
+	 * Return the value at a given index as a float.
+	 * 
+	 * @param fullNameEscaped
+	 * @param index
+	 * @return {@code float} value
+	 */
+	public float getFloat(String fullNameEscaped, int index) {
+		return variables.get(fullNameEscaped).getFloat(index);
+	}
+	
+	/**
+	 * Return the first value as a float.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code float} value
+	 */
+	public float getFloat(String fullNameEscaped) {
+		return getFloat(fullNameEscaped, 0);
+	}
+	
+	/**
+	 * Return the value at a given index as a double.
+	 * 
+	 * @param fullNameEscaped
+	 * @param index
+	 * @return {@code double} value
+	 */
+	public double getDouble(String fullNameEscaped, int index) {
+		return variables.get(fullNameEscaped).getDouble(index);
+	}
+	
+	/**
+	 * Return the first value as a double.
+	 * 
+	 * @param fullNameEscaped
+	 * @return {@code double} value
+	 */
+	public double getDouble(String fullNameEscaped) {
+		return getDouble(fullNameEscaped, 0);
 	}
 	
 	/**
