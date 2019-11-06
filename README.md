@@ -7,9 +7,9 @@
 - Still early days. Things will break.
 
 ## Example
-The following example loads the first observation of a gravitational wave from an HDF5 file, then plots the data (strain). Visit the [Graviational Wave Open Science Center](https://www.gw-openscience.org/about/) for tutorials and datasets.
+The following example loads the first observation of a gravitational wave from an [HDF5 file](https://www.gw-openscience.org/catalog/GWTC-1-confident/data/GW150914/H-H1_GWOSC_4KHZ_R1-1126257415-4096.hdf5) stored in the sketch's `data` folder, then plots the data (strain). Visit the [Graviational Wave Open Science Center](https://www.gw-openscience.org/about/) for tutorials and datasets.
 
-![Plot of LIGO data](examples/LIGOExample/data/ligo.png)
+![Plot of LIGO data](ligo.png)
 
 ```java
 import netcdf.*;

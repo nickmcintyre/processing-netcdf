@@ -30,7 +30,6 @@ import ucar.ma2.InvalidRangeException;
  * @version     ##library.prettyVersion## (##library.version##)
  *
  * @example InspectExample
- * @example LIGOExample
  * @example THREDDSExample
  * @example WRFExample
  */
