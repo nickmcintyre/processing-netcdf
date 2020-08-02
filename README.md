@@ -4,7 +4,6 @@
 - Thin wrapper around the [Unidata NetCDF Java library](https://www.unidata.ucar.edu/software/thredds/current/netcdf-java/documentation.htm).
 - Friendly API for scientific file formats and remote access protocols.
 - GRIB 1/2, HDF 4/5, NetCDF 3/4, OPeNDAP, and [many more](https://www.unidata.ucar.edu/software/thredds/current/netcdf-java/reference/formats/FileTypes.html).
-- Still early days. Things will break.
 
 ## Example
 The following example loads the first observation of a gravitational wave from an [HDF5 file](https://www.gw-openscience.org/catalog/GWTC-1-confident/data/GW150914/H-H1_GWOSC_4KHZ_R1-1126257415-4096.hdf5) stored in the sketch's `data` folder, then plots the data (strain). Visit the [Graviational Wave Open Science Center](https://www.gw-openscience.org/about/) for tutorials and datasets.
